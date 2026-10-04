@@ -1,16 +1,18 @@
 name: Android 构建
 
-# 云端构建要先补齐三份被 .gitignore 排除的离线资产，全部落在 Release 标签 ASSET_TAG 上：
+# 云端构建要先补齐四份被 .gitignore 排除的离线资产，全部落在 Release 标签 ASSET_TAG 上：
 #   1. offline-rootfs.bin        85 MiB  仓库里没有生成脚本 —— 只能以资产形式提供
-#   2. ubuntu-tools.bin          18 MiB  由 packages.lock.json 锁定的 arm64 deb 集合；
-#                                        连同 ubuntu-tools.inputs.json 一起取，取不到才现场从
-#                                        ports.ubuntu.com 重拉（旧版本 deb 会从 pool 里下架，
-#                                        lock 一旦过期这条路就断 —— 所以资产优先）
-#   3. dsh-runtime.bin          122 MiB  不进 Release：tools/prepare-dsh-runtime.py 用公开 npm
-#                                        的锁文件现场重装，可按锁文件哈希缓存
+#   2. dsh-runtime.bin          122 MiB  必须用发布时那一份：app/src/main/assets/
+#                                        managed-package-proofs.json 和 tools/recovery-runtime/
+#                                        lock.json 都把它的 sha256 写死了，现场用 npm 重装的
+#                                        结果按字节对不上（实测 e0d8bbfc… vs 固定的 9c95e95d…），
+#                                        prepareBackupAssets 会直接失败
+#   3. ubuntu-tools.bin          18 MiB  由 packages.lock.json 锁定的 arm64 deb 集合；
+#                                        旧版本 deb 会从 pool 下架，现场重拉一路 404，所以资产优先
+#   4. 后两份各自的 .inputs.json        同样被 .gitignore 排除，构建核验要用
 # 应急运行时 tools/recovery-runtime/archives/*.bin 不用单独提供：prepare-recovery-assets.py
 # 会按 lock.json 的 sha256 从上面同摘要的正式归档自行派生。
-# 一项都取不到时工作流照常跑，但退化成「精简资产」：能编译、能跑单测，产物不含内置离线环境。
+# 资产取不到时工作流照常跑，但退化成「精简资产」：能编译、能跑单测，产物不含内置离线环境。
 #
 # 正式版（release）不在 CI 里打 —— app/build.gradle 的 verifyPublishCertificate 要求
 # 历史 E7E3 发布证书（DSHA_KEYSTORE）且证书指纹必须逐位相符，密钥不进 CI。
@@ -68,39 +70,47 @@ jobs:
           gh release download "$ASSET_TAG" \
             --repo "$GITHUB_REPOSITORY" \
             --pattern 'offline-rootfs.bin' \
+            --pattern 'dsh-runtime.bin' \
+            --pattern 'dsh-runtime.inputs.json' \
             --pattern 'ubuntu-tools.bin' \
             --pattern 'ubuntu-tools.inputs.json' \
             --dir /tmp/dsha-assets
-          cp /tmp/dsha-assets/offline-rootfs.bin        app/src/main/assets/
-          cp /tmp/dsha-assets/ubuntu-tools.bin          app/src/main/assets/
-          cp /tmp/dsha-assets/ubuntu-tools.inputs.json  app/src/main/assets/
-          ls -lh app/src/main/assets/offline-rootfs.bin app/src/main/assets/ubuntu-tools.bin
+          cp /tmp/dsha-assets/*.bin /tmp/dsha-assets/*.json app/src/main/assets/
+          sha256sum app/src/main/assets/offline-rootfs.bin \
+                    app/src/main/assets/dsh-runtime.bin \
+                    app/src/main/assets/ubuntu-tools.bin
 
-      - name: 缺离线 rootfs 的提示
+      - name: 缺离线资产的提示
         if: steps.offline.outcome != 'success'
         run: |
-          echo "::warning::没取到 $ASSET_TAG 的离线资产：本次按精简资产构建，产物不含内置离线环境。"
-          echo "::warning::补齐办法：把 offline-rootfs.bin / ubuntu-tools.bin / ubuntu-tools.inputs.json 传到该标签的 Release 上。"
+          echo "::warning::没取到 $ASSET_TAG 的离线资产：本次退化成精简资产构建，产物不含内置离线环境。"
+          echo "::warning::补齐办法：把 offline-rootfs.bin + dsh-runtime.bin + ubuntu-tools.bin 与两份 .inputs.json 传成该标签的 Release 资产。"
 
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
 
       - name: Node 24 + npm 11（prepare-dsh-runtime.py 的硬要求）
+        if: steps.offline.outcome != 'success'
         uses: actions/setup-node@v4
         with:
           node-version: '24'
 
       - name: 缓存重建好的 dsh 离线运行时
+        if: steps.offline.outcome != 'success'
         uses: actions/cache@v4
         with:
           path: app/src/main/assets/dsh-runtime.bin
           key: dsh-runtime-${{ hashFiles('tools/prepare-dsh-runtime.py', 'tools/build-dsh-runtime.py', 'tools/dsh-runtime/package-lock.json') }}
 
-      - name: 重建 dsh 离线运行时
+      # 兜底路径：拿不到固定归档时才现场用公开 npm 重装。
+      # 注意重装结果按字节对不上 managed-package-proofs.json / recovery lock 里写死的摘要，
+      # 那一步会拦下来 —— 这条路只能用来应急，不能当正式来源。
+      - name: 重建 dsh 离线运行时（兜底）
+        if: steps.offline.outcome != 'success'
         run: python3 tools/prepare-dsh-runtime.py
 
-      - name: 重建 Ubuntu 离线基础工具
+      - name: 重建 Ubuntu 离线基础工具（兜底）
         if: steps.offline.outcome != 'success'
         run: python3 tools/prepare-ubuntu-tools.py
 
