@@ -1,11 +1,16 @@
 name: Android 构建
 
-# 云端构建要先补齐三份被 .gitignore 排除的离线资产：
-#   1. offline-rootfs.bin    85 MiB  仓库里没有生成脚本 —— 只能从 Release 资产取
-#   2. dsh-runtime.bin      122 MiB  tools/prepare-dsh-runtime.py 用公开 npm 的锁文件重装
-#   3. ubuntu-tools.bin      18 MiB  tools/prepare-ubuntu-tools.py 拉 ports.ubuntu.com 上锁定的 deb
-# 应急运行时 tools/recovery-runtime/archives/*.bin 同样只在 Release 里，锁在 lock.json。
-# 取不到第 1 项时工作流照常跑，但退化成「精简资产」：能编译、能跑单测，产物不含内置离线环境。
+# 云端构建要先补齐三份被 .gitignore 排除的离线资产，全部落在 Release 标签 ASSET_TAG 上：
+#   1. offline-rootfs.bin        85 MiB  仓库里没有生成脚本 —— 只能以资产形式提供
+#   2. ubuntu-tools.bin          18 MiB  由 packages.lock.json 锁定的 arm64 deb 集合；
+#                                        连同 ubuntu-tools.inputs.json 一起取，取不到才现场从
+#                                        ports.ubuntu.com 重拉（旧版本 deb 会从 pool 里下架，
+#                                        lock 一旦过期这条路就断 —— 所以资产优先）
+#   3. dsh-runtime.bin          122 MiB  不进 Release：tools/prepare-dsh-runtime.py 用公开 npm
+#                                        的锁文件现场重装，可按锁文件哈希缓存
+# 应急运行时 tools/recovery-runtime/archives/*.bin 不用单独提供：prepare-recovery-assets.py
+# 会按 lock.json 的 sha256 从上面同摘要的正式归档自行派生。
+# 一项都取不到时工作流照常跑，但退化成「精简资产」：能编译、能跑单测，产物不含内置离线环境。
 #
 # 正式版（release）不在 CI 里打 —— app/build.gradle 的 verifyPublishCertificate 要求
 # 历史 E7E3 发布证书（DSHA_KEYSTORE）且证书指纹必须逐位相符，密钥不进 CI。
@@ -59,21 +64,23 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail
-          mkdir -p app/src/main/assets tools/recovery-runtime/archives
+          mkdir -p app/src/main/assets
           gh release download "$ASSET_TAG" \
             --repo "$GITHUB_REPOSITORY" \
             --pattern 'offline-rootfs.bin' \
-            --pattern 'recovery-rootfs.bin' \
-            --pattern 'recovery-dsh-runtime.bin' \
+            --pattern 'ubuntu-tools.bin' \
+            --pattern 'ubuntu-tools.inputs.json' \
             --dir /tmp/dsha-assets
           cp /tmp/dsha-assets/offline-rootfs.bin        app/src/main/assets/
-          cp /tmp/dsha-assets/recovery-rootfs.bin       tools/recovery-runtime/archives/
-          cp /tmp/dsha-assets/recovery-dsh-runtime.bin  tools/recovery-runtime/archives/
-          ls -lh app/src/main/assets/offline-rootfs.bin tools/recovery-runtime/archives/
+          cp /tmp/dsha-assets/ubuntu-tools.bin          app/src/main/assets/
+          cp /tmp/dsha-assets/ubuntu-tools.inputs.json  app/src/main/assets/
+          ls -lh app/src/main/assets/offline-rootfs.bin app/src/main/assets/ubuntu-tools.bin
 
       - name: 缺离线 rootfs 的提示
         if: steps.offline.outcome != 'success'
-        run: echo "::warning::没取到 $ASSET_TAG 的 offline-rootfs.bin，本次按精简资产构建，产物不含内置离线环境。"
+        run: |
+          echo "::warning::没取到 $ASSET_TAG 的离线资产：本次按精简资产构建，产物不含内置离线环境。"
+          echo "::warning::补齐办法：把 offline-rootfs.bin / ubuntu-tools.bin / ubuntu-tools.inputs.json 传到该标签的 Release 上。"
 
       - uses: actions/setup-python@v5
         with:
@@ -94,6 +101,7 @@ jobs:
         run: python3 tools/prepare-dsh-runtime.py
 
       - name: 重建 Ubuntu 离线基础工具
+        if: steps.offline.outcome != 'success'
         run: python3 tools/prepare-ubuntu-tools.py
 
       - uses: actions/setup-java@v4
