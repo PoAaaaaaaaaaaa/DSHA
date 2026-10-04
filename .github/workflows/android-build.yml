@@ -1,0 +1,147 @@
+name: Android 构建
+
+# 云端构建要先补齐三份被 .gitignore 排除的离线资产：
+#   1. offline-rootfs.bin    85 MiB  仓库里没有生成脚本 —— 只能从 Release 资产取
+#   2. dsh-runtime.bin      122 MiB  tools/prepare-dsh-runtime.py 用公开 npm 的锁文件重装
+#   3. ubuntu-tools.bin      18 MiB  tools/prepare-ubuntu-tools.py 拉 ports.ubuntu.com 上锁定的 deb
+# 应急运行时 tools/recovery-runtime/archives/*.bin 同样只在 Release 里，锁在 lock.json。
+# 取不到第 1 项时工作流照常跑，但退化成「精简资产」：能编译、能跑单测，产物不含内置离线环境。
+#
+# 正式版（release）不在 CI 里打 —— app/build.gradle 的 verifyPublishCertificate 要求
+# 历史 E7E3 发布证书（DSHA_KEYSTORE）且证书指纹必须逐位相符，密钥不进 CI。
+# 这里只出 debug 包和单测结果。
+
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - 'docs/**'
+      - 'website/**'
+      - '**/*.md'
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      flavor:
+        description: 版本
+        type: choice
+        options: [standard, low]
+        default: standard
+      skip_apk:
+        description: 只跑单测，不打 APK
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: android-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  DSHA_PYTHON: python3
+  ASSET_TAG: dsha-offline-assets-v10
+  GRADLE_USER_HOME: ${{ github.workspace }}/.gradle-home
+
+jobs:
+  build:
+    name: ${{ inputs.flavor == 'low' && '兼容版 low' || '标准版 standard' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 取回离线的内置运行环境
+        id: offline
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          mkdir -p app/src/main/assets tools/recovery-runtime/archives
+          gh release download "$ASSET_TAG" \
+            --repo "$GITHUB_REPOSITORY" \
+            --pattern 'offline-rootfs.bin' \
+            --pattern 'recovery-rootfs.bin' \
+            --pattern 'recovery-dsh-runtime.bin' \
+            --dir /tmp/dsha-assets
+          cp /tmp/dsha-assets/offline-rootfs.bin        app/src/main/assets/
+          cp /tmp/dsha-assets/recovery-rootfs.bin       tools/recovery-runtime/archives/
+          cp /tmp/dsha-assets/recovery-dsh-runtime.bin  tools/recovery-runtime/archives/
+          ls -lh app/src/main/assets/offline-rootfs.bin tools/recovery-runtime/archives/
+
+      - name: 缺离线 rootfs 的提示
+        if: steps.offline.outcome != 'success'
+        run: echo "::warning::没取到 $ASSET_TAG 的 offline-rootfs.bin，本次按精简资产构建，产物不含内置离线环境。"
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Node 24 + npm 11（prepare-dsh-runtime.py 的硬要求）
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+
+      - name: 缓存重建好的 dsh 离线运行时
+        uses: actions/cache@v4
+        with:
+          path: app/src/main/assets/dsh-runtime.bin
+          key: dsh-runtime-${{ hashFiles('tools/prepare-dsh-runtime.py', 'tools/build-dsh-runtime.py', 'tools/dsh-runtime/package-lock.json') }}
+
+      - name: 重建 dsh 离线运行时
+        run: python3 tools/prepare-dsh-runtime.py
+
+      - name: 重建 Ubuntu 离线基础工具
+        run: python3 tools/prepare-ubuntu-tools.py
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - uses: android-actions/setup-android@v3
+
+      - name: 安装 SDK 组件
+        run: |
+          set -euo pipefail
+          yes | sdkmanager --licenses >/dev/null 2>&1 || true
+          sdkmanager --install "platforms;android-37.0" "build-tools;36.0.0" "ndk;26.3.11579264"
+
+      - name: 写 local.properties
+        run: echo "sdk.dir=${ANDROID_SDK_ROOT:-$ANDROID_HOME}" > local.properties
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      - name: 单测（两个 flavor 都跑）
+        run: |
+          set -euo pipefail
+          ./gradlew :app:testStandardDebugUnitTest :app:testLowDebugUnitTest --no-daemon --stacktrace
+
+      - name: 打 APK
+        if: ${{ !inputs.skip_apk }}
+        env:
+          FLAVOR: ${{ inputs.flavor == 'low' && 'Low' || 'Standard' }}
+        run: |
+          set -euo pipefail
+          ./gradlew ":app:assemble${FLAVOR}Debug" --no-daemon --stacktrace
+          find app/build/outputs/apk -name '*.apk' -print -exec ls -lh {} \;
+
+      - name: 收集单测报告
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: unit-test-reports
+          path: app/build/reports/tests/
+          if-no-files-found: ignore
+          retention-days: 14
+
+      - name: 收集 APK
+        if: ${{ !inputs.skip_apk }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: dsha-apk-${{ inputs.flavor == 'low' && 'low' || 'standard' }}-debug
+          path: app/build/outputs/apk/**/debug/*.apk
+          if-no-files-found: error
+          retention-days: 30
