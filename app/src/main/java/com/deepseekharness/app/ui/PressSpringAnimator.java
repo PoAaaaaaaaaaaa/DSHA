@@ -1,6 +1,9 @@
 package com.deepseekharness.app.ui;
 
+import android.animation.Animator;
+import android.animation.AnimatorListenerAdapter;
 import android.animation.StateListAnimator;
+import android.animation.ValueAnimator;
 import android.view.View;
 import android.view.ViewGroup;
 
@@ -14,6 +17,12 @@ import com.deepseekharness.app.util.SpringValue;
  * <p>挂在 {@code stateListAnimator} 上，<b>不碰触摸事件</b>：用 OnTouchListener 去拦截会给
  * 每个控件加一层事件转发，还得小心别把原来的监听器覆盖掉；而按下 / 抬起本来就体现为
  * {@code state_pressed}，直接响应 drawable state 更省事，也不会影响点击判定、长按、涟漪。
+ *
+ * <p><b>为什么用 addState 而不是覆写 setState</b>：{@code StateListAnimator.setState(int[])}
+ * 在 AOSP 里标了 {@code @hide}，SDK 的 android.jar 里根本没有它，子类写 {@code @Override}
+ * 直接编译失败。能用的公开入口只有 {@link #addState(int[], Animator)}，所以这里挂两个
+ * 占位 Animator —— 它们不负责插值（1ms 就走完），唯一作用是在状态切换时被启动一下，
+ * 借那一刻把弹簧指向新目标，之后的形变完全由弹簧自己跑。
  *
  * <p>已经被别人设置过 stateListAnimator 的控件一律跳过：Material 按钮用它做海拔动画，
  * 抢过来会让按钮"按下去不抬起来"。
@@ -48,6 +57,10 @@ public final class PressSpringAnimator extends StateListAnimator {
                 settle();
             }
         });
+        // 顺序即优先级：setState 取第一个匹配上的 spec，所以「按下」必须排在默认项前面。
+        // 空 spec 匹配任何状态，当兜底用。
+        addState(new int[]{android.R.attr.state_pressed}, starter(PRESSED_SCALE));
+        addState(new int[]{}, starter(1f));
     }
 
     /** 给单个可点击控件挂上；不满足条件的直接返回，调用方不需要先判断。 */
@@ -75,23 +88,25 @@ public final class PressSpringAnimator extends StateListAnimator {
         }
     }
 
-    @Override
-    public void setState(int[] state) {
-        boolean pressed = false;
-        boolean enabled = true;
-        for (int value : state) {
-            if (value == android.R.attr.state_pressed) pressed = true;
-            else if (value == -android.R.attr.state_enabled) enabled = false;
-        }
-        float goal = pressed && enabled ? PRESSED_SCALE : 1f;
-        // drawable state 会因为聚焦、悬停、激活等一堆原因变化，目标没变就别重启弹簧。
-        if (scaleX.target() == goal && scaleY.target() == goal) return;
-        // 按下那一刻才读系统设置：drawable state 的变化非常频繁，每次都读会拖慢主线程。
-        // 放在这里也顺带解决了「用户中途把动画关掉 / 打开」—— 下次按下就跟上了。
-        if (pressed && enabled && !UiAnimations.enabled(target.getContext())) return;
-        scaleX.animateTo(goal);
-        scaleY.animateTo(goal);
-        ticker.request();
+    /**
+     * 造一个「状态切换信号器」：它自己不做任何视觉变化，只借 onAnimationStart 那一帧
+     * 把弹簧推向目标。StateListAnimator 需要它来驱动状态匹配，弹簧则独立跑自己的帧。
+     */
+    private Animator starter(float goal) {
+        ValueAnimator animator = ValueAnimator.ofFloat(0f, 1f);
+        animator.setDuration(1);
+        animator.addListener(new AnimatorListenerAdapter() {
+            @Override public void onAnimationStart(Animator animation) {
+                // 按下那一刻才读系统设置：drawable state 的变化非常频繁，每次都读会拖慢主线程。
+                // 放在这里也顺带解决了「用户中途把动画关掉 / 打开」—— 下次按下就跟上了。
+                if (goal < 1f && !UiAnimations.enabled(target.getContext())) return;
+                if (scaleX.target() == goal && scaleY.target() == goal) return;
+                scaleX.animateTo(goal);
+                scaleY.animateTo(goal);
+                ticker.request();
+            }
+        });
+        return animator;
     }
 
     @Override
