@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  液态玻璃视觉 token（深色）。与 values/glass.xml 一一对应，改一边必须改另一边。
+
+  深色下的要点：玻璃必须比背景【亮】，否则"浮起"就没了。深色背景是纯黑，
+  卡片压到 #14171D 就已经能看出层次，再暗就糊成一片。
+-->
+<resources>
+
+    <color name="glass_top">#1E222A</color>
+    <color name="glass_bottom">#14171D</color>
+
+    <color name="glass_sheen">#14FFFFFF</color>
+
+    <color name="glass_stroke">#2F353F</color>
+
+    <color name="glass_bar_top">#FA14171D</color>
+    <color name="glass_bar_bottom">#F20F1115</color>
+
+    <color name="glass_rim">#3D7DA7F4</color>
+
+    <color name="glass_press">#14FFFFFF</color>
+
+</resources>

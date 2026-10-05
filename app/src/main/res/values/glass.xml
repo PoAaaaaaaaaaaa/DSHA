@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  液态玻璃视觉 token（浅色）。
+
+  学自 ytbl 的分层模型：一块玻璃 = 表面色 + 受光渐变 + 顶部高光带 + 亮描边，
+  四个量分开调，而不是把一个灰值调来调去。
+
+  两条纪律，别破：
+  1. 全部卡片共用 bg_card 这一套。某个页面想要"更亮一点的卡片"就改这里的 token，
+     不要在页面里另起一份 shape —— 同类框色差就是这么来的。
+  2. 高光只从顶边往下走一层淡渐变，不做斜向高光。斜光在窄屏上会随宽度变角度，
+     同一张卡片在手机和平板上看着是两种材质。
+-->
+<resources>
+
+    <!-- 玻璃表面：顶边受光、底边背光，给平面卡片一点厚度 -->
+    <color name="glass_top">#FFFFFFFF</color>
+    <color name="glass_bottom">#F3F6FB</color>
+
+    <!-- 顶边高光带：从顶边向下渐隐，只需要很淡的一层 -->
+    <color name="glass_sheen">#12FFFFFF</color>
+
+    <!-- 描边：比 line 亮一档，模拟玻璃边缘的折射亮线 -->
+    <color name="glass_stroke">#E7ECF4</color>
+
+    <!-- 顶栏 / 底栏：整条玻璃，比卡片更透，因为它更长 -->
+    <color name="glass_bar_top">#FAFFFFFF</color>
+    <color name="glass_bar_bottom">#F2F5FAFF</color>
+
+    <!-- 分割线走亮边而不是灰线：玻璃条之间是"叠"出来的，不是"画"出来的 -->
+    <color name="glass_rim">#2E1E50D0</color>
+
+    <!-- 按压反馈：玻璃被按下去的瞬间表面会压暗一点 -->
+    <color name="glass_press">#0F152033</color>
+
+</resources>

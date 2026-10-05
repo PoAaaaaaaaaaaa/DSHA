@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto" android:layout_width="match_parent" android:layout_height="match_parent" android:orientation="vertical" android:background="@color/surface">
     <FrameLayout android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1">
-        <ScrollView android:layout_width="match_parent" android:layout_height="match_parent" android:fillViewport="true" android:background="@color/surface">
+        <com.deepseekharness.app.ui.JellyScrollView android:layout_width="match_parent" android:layout_height="match_parent" android:fillViewport="true" android:background="@color/surface">
             <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:paddingLeft="18dp" android:paddingRight="18dp" android:paddingTop="14dp" android:paddingBottom="22dp">
                 <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/ui2_runtime_config" android:textSize="24sp" android:textColor="@color/text" android:includeFontPadding="false" android:textStyle="bold" />
                 <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/ui2_config_sub" android:textSize="12sp" android:textColor="@color/text_secondary" android:includeFontPadding="false" android:layout_marginTop="7dp" android:layout_marginBottom="18dp" />
@@ -77,7 +77,7 @@
                 <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:id="@+id/config_adv_header" android:text="" android:textSize="13sp" android:textColor="@color/text" android:includeFontPadding="false" android:visibility="gone" />
                 <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:id="@+id/config_adv_body" android:orientation="vertical" android:visibility="gone" />
             </LinearLayout>
-        </ScrollView>
+        </com.deepseekharness.app.ui.JellyScrollView>
     </FrameLayout>
     <androidx.appcompat.widget.AppCompatButton android:layout_width="match_parent" android:layout_height="wrap_content" android:id="@+id/config_save" android:text="@string/ui_m0002" android:textSize="13sp" android:textStyle="bold" android:textAllCaps="false" android:gravity="center" android:includeFontPadding="false" android:minHeight="48dp" android:minWidth="0dp" android:paddingLeft="12dp" android:paddingRight="12dp" android:paddingTop="10dp" android:paddingBottom="10dp" android:background="@drawable/bg_btn_primary" android:textColor="@color/button_primary_text" android:layout_marginStart="18dp" android:layout_marginEnd="18dp" android:layout_marginTop="8dp" android:layout_marginBottom="12dp" />
 </LinearLayout>

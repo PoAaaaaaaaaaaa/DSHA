@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto" android:layout_width="match_parent" android:layout_height="match_parent" android:background="@color/surface" android:fillViewport="true">
+<com.deepseekharness.app.ui.JellyScrollView xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto" android:layout_width="match_parent" android:layout_height="match_parent" android:background="@color/surface" android:fillViewport="true">
   <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="18dp">
     <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:minHeight="48dp" android:gravity="center_vertical" android:orientation="horizontal">
       <androidx.appcompat.widget.AppCompatImageButton android:id="@+id/link_install_close" android:layout_width="48dp" android:layout_height="48dp" android:padding="12dp" android:background="?attr/selectableItemBackgroundBorderless" android:src="@drawable/ic_ui_back" android:contentDescription="@string/ui_m0201" app:tint="@color/text" />
@@ -10,4 +10,4 @@
     <Button android:id="@+id/link_install_confirm" style="@style/Widget.DSHA.PrimaryButton" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="24dp" android:text="@string/ui_m0185" />
     <Button android:id="@+id/link_install_manage" style="@style/Widget.DSHA.TextButton" android:layout_marginTop="8dp" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/ui_m0013" />
   </LinearLayout>
-</ScrollView>
+</com.deepseekharness.app.ui.JellyScrollView>

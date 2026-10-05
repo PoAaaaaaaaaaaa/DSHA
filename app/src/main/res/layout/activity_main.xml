@@ -1,6 +1,13 @@
 <?xml version='1.0' encoding='utf-8'?>
+<!--
+  主外壳：顶栏 + 页面容器 + 底部导航。
+
+  顶栏与底栏改成玻璃条（各自的 drawable 里带一条朝内的折射亮线），
+  原来那两条独立的分割线 View 就删掉了 —— 亮线已经画在玻璃条上，
+  两条线并排会看出一条"双线"，像没对齐。
+-->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto" android:layout_width="match_parent" android:layout_height="match_parent" android:background="@color/surface" android:orientation="vertical">
-  <LinearLayout android:id="@+id/app_bar" android:layout_width="match_parent" android:layout_height="wrap_content" android:minHeight="60dp" android:gravity="center_vertical" android:orientation="horizontal" android:paddingStart="18dp" android:paddingEnd="16dp">
+  <LinearLayout android:id="@+id/app_bar" android:layout_width="match_parent" android:layout_height="wrap_content" android:minHeight="60dp" android:background="@drawable/bg_glass_bar_header" android:gravity="center_vertical" android:orientation="horizontal" android:paddingStart="18dp" android:paddingEnd="16dp">
     <FrameLayout android:id="@+id/app_logo" android:layout_width="34dp" android:layout_height="34dp" android:background="@drawable/bg_logo">
       <ImageView android:layout_width="17dp" android:layout_height="17dp" android:layout_gravity="center" android:contentDescription="@null" android:src="@drawable/ic_terminal" app:tint="@color/primary" />
     </FrameLayout>
@@ -12,9 +19,7 @@
       <ImageView android:layout_width="16dp" android:layout_height="16dp" android:layout_gravity="center" android:contentDescription="@null" android:src="@drawable/ic_about" app:tint="@color/text_secondary" />
     </FrameLayout>
   </LinearLayout>
-  <View android:layout_width="match_parent" android:layout_height="1dp" android:background="@color/line" />
   <TextView android:id="@+id/environment_recovery_banner" android:layout_width="match_parent" android:layout_height="wrap_content" android:minHeight="48dp" android:padding="12dp" android:textColor="@color/primary" android:background="@drawable/bg_chip_clickable" android:textSize="14sp" android:clickable="true" android:focusable="true" android:visibility="gone" android:gravity="center" android:includeFontPadding="false" />
   <FrameLayout android:id="@+id/fragment_container" android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" />
-  <View android:layout_width="match_parent" android:layout_height="@dimen/stroke" android:background="@color/line" />
-  <com.google.android.material.bottomnavigation.BottomNavigationView android:id="@+id/bottom_nav" android:layout_width="match_parent" android:layout_height="wrap_content" android:background="@color/surface" android:minHeight="64dp" app:itemIconSize="20dp" app:itemPaddingTop="8dp" app:itemPaddingBottom="6dp" app:elevation="0dp" app:itemIconTint="@color/nav_item_tint" app:itemTextColor="@color/nav_item_tint" app:labelVisibilityMode="labeled" app:menu="@menu/bottom_nav_menu" app:itemTextAppearanceActive="@style/Ui2.Nav" app:itemTextAppearanceInactive="@style/Ui2.Nav" />
+  <com.google.android.material.bottomnavigation.BottomNavigationView android:id="@+id/bottom_nav" android:layout_width="match_parent" android:layout_height="wrap_content" android:background="@drawable/bg_glass_bar" android:minHeight="64dp" app:itemIconSize="20dp" app:itemPaddingTop="8dp" app:itemPaddingBottom="6dp" app:elevation="0dp" app:itemIconTint="@color/nav_item_tint" app:itemTextColor="@color/nav_item_tint" app:labelVisibilityMode="labeled" app:menu="@menu/bottom_nav_menu" app:itemTextAppearanceActive="@style/Ui2.Nav" app:itemTextAppearanceInactive="@style/Ui2.Nav" />
 </LinearLayout>

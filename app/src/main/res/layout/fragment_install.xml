@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto" android:layout_width="match_parent" android:layout_height="match_parent" android:fillViewport="true" android:background="@color/surface" android:id="@+id/install_scroll">
+<com.deepseekharness.app.ui.JellyScrollView xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto" android:layout_width="match_parent" android:layout_height="match_parent" android:fillViewport="true" android:background="@color/surface" android:id="@+id/install_scroll">
     <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:paddingLeft="18dp" android:paddingRight="18dp" android:paddingTop="14dp" android:paddingBottom="22dp">
         <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/ui2_environment_page" android:textSize="24sp" android:textColor="@color/text" android:includeFontPadding="false" android:textStyle="bold" />
         <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/ui2_environment_sub" android:textSize="12sp" android:textColor="@color/text_secondary" android:includeFontPadding="false" android:layout_marginTop="7dp" android:layout_marginBottom="18dp" />
@@ -127,4 +127,4 @@
         </com.deepseekharness.app.ui.LogScrollView>
         <Button android:id="@+id/install_crash" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/ui_m0152" android:visibility="gone" />
     </LinearLayout>
-</ScrollView>
+</com.deepseekharness.app.ui.JellyScrollView>

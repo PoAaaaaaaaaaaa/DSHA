@@ -1,4 +1,43 @@
-<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
-    <solid android:color="@color/card" /><corners android:radius="22dp" />
-    <stroke android:width="1dp" android:color="@color/line" />
-</shape>
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  设备卡片：与 bg_card 同一套玻璃层次，只保留它自己的 22dp 圆角。
+
+  这个文件原先自己写死 @color/card + @color/line，绕过了 drawable_aliases 的统一机制 ——
+  而它和普通卡片是同页面并排出现的（设备能力授权页、安装页、ADB 配对页），
+  两种灰放在一起立刻能看出来。层次改回共用的玻璃 token 之后色差就没了。
+-->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item>
+        <shape android:shape="rectangle">
+            <gradient
+                android:angle="270"
+                android:endColor="@color/glass_bottom"
+                android:startColor="@color/glass_top"
+                android:type="linear" />
+            <corners android:radius="22dp" />
+        </shape>
+    </item>
+
+    <item>
+        <shape android:shape="rectangle">
+            <gradient
+                android:angle="270"
+                android:endColor="@android:color/transparent"
+                android:startColor="@color/glass_sheen"
+                android:type="linear" />
+            <corners android:radius="22dp" />
+        </shape>
+    </item>
+
+    <item>
+        <shape android:shape="rectangle">
+            <solid android:color="@android:color/transparent" />
+            <corners android:radius="22dp" />
+            <stroke
+                android:width="@dimen/stroke"
+                android:color="@color/glass_stroke" />
+        </shape>
+    </item>
+
+</layer-list>

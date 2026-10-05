@@ -9,7 +9,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ProgressBar;
-import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
 import androidx.annotation.NonNull;
@@ -76,7 +75,7 @@ public class InstallFragment extends Fragment {
         super.onViewStateRestored(state);
         View view = getView();
         if (state == null && view != null) view.post(() -> {
-            if (getView() == view) ((ScrollView) view.findViewById(R.id.install_scroll)).scrollTo(0, 0);
+            if (getView() == view) view.findViewById(R.id.install_scroll).scrollTo(0, 0);
         });
     }
     @Override public void onResume() { super.onResume(); handler.removeCallbacks(refresh); handler.post(refresh); }

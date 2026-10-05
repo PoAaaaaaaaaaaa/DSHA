@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  胶囊 / 徽章：与卡片同一套玻璃，只换圆角。
-  尺寸小所以渐变要更收敛 —— 高光带按整块高度铺，矮控件上会显得很脏。
+  底部导航条的玻璃底：上亮下暗 + 顶边一道折射亮线。
+
+  为什么不用纯色：底栏下面是滚到底的内容，一条纯色横带会把内容"切断"。
+  换成受光渐变 + 亮线之后，底栏读起来是一块压在上面的玻璃，而不是页面的一截。
 -->
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
 
@@ -9,10 +11,9 @@
         <shape android:shape="rectangle">
             <gradient
                 android:angle="270"
-                android:endColor="@color/glass_bottom"
-                android:startColor="@color/glass_top"
+                android:endColor="@color/glass_bar_bottom"
+                android:startColor="@color/glass_bar_top"
                 android:type="linear" />
-            <corners android:radius="@dimen/radius_pill" />
         </shape>
     </item>
 
@@ -23,17 +24,15 @@
                 android:endColor="@android:color/transparent"
                 android:startColor="@color/glass_sheen"
                 android:type="linear" />
-            <corners android:radius="@dimen/radius_pill" />
         </shape>
     </item>
 
-    <item>
+    <!-- 顶边亮线：玻璃的折射边，也是与内容的分界 -->
+    <item
+        android:height="@dimen/stroke"
+        android:gravity="top">
         <shape android:shape="rectangle">
-            <solid android:color="@android:color/transparent" />
-            <corners android:radius="@dimen/radius_pill" />
-            <stroke
-                android:width="@dimen/stroke"
-                android:color="@color/glass_stroke" />
+            <solid android:color="@color/glass_rim" />
         </shape>
     </item>
 

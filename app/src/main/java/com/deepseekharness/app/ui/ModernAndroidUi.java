@@ -16,6 +16,23 @@ import com.deepseekharness.app.R;
 public final class ModernAndroidUi implements Application.ActivityLifecycleCallbacks {
     @Override public void onActivityPostCreated(Activity activity, Bundle saved) {
         applyInsets(activity);
+        applyPressFeedback(activity);
+    }
+
+    /**
+     * 给这个 Activity 自己布局里的可点控件挂上按压弹簧。
+     *
+     * <p>Fragment 的视图不归这里管 —— 它们是 {@code onActivityPostCreated} 之后才添加的，
+     * 由 MainActivity 注册的 Fragment 生命周期回调负责。两边合起来才覆盖全部页面。
+     */
+    private void applyPressFeedback(Activity activity) {
+        View content = activity.findViewById(android.R.id.content);
+        if (content == null) return;
+        // 放到下一帧：有的 Activity 在 onCreate 里只搭了一部分内容，此时遍历会漏掉后面加的。
+        content.post(() -> {
+            if (activity.isFinishing() || activity.isDestroyed()) return;
+            PressSpringAnimator.applyTo(content);
+        });
     }
 
     private void applyInsets(Activity activity) {

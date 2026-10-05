@@ -4,7 +4,7 @@
     <androidx.appcompat.widget.AppCompatImageButton android:id="@+id/adb_pair_back" android:layout_width="48dp" android:layout_height="48dp" android:padding="12dp" android:background="?attr/selectableItemBackgroundBorderless" android:src="@drawable/ic_ui_back" android:contentDescription="@string/ui_m0201" app:tint="@color/text" />
     <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:text="@string/ui2_adb" android:textSize="18sp" android:textColor="@color/text" android:includeFontPadding="false" android:textStyle="bold" android:layout_weight="1" android:layout_marginStart="10dp" />
   </LinearLayout>
-  <ScrollView android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" android:fillViewport="true">
+  <com.deepseekharness.app.ui.JellyScrollView android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" android:fillViewport="true">
     <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="18dp">
       <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/ui2_adb" android:textSize="24sp" android:textColor="@color/text" android:includeFontPadding="false" android:textStyle="bold" />
       <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/ui2_adb_intro" android:textSize="12sp" android:textColor="@color/text_secondary" android:includeFontPadding="false" android:layout_marginTop="6dp" android:layout_marginBottom="18dp" />
@@ -30,5 +30,5 @@
         <Button android:id="@+id/adb_pair_help" style="@style/Widget.DSHA.TextButton" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="6dp" android:text="@string/ui_m0026" />
       </LinearLayout>
     </LinearLayout>
-  </ScrollView>
+  </com.deepseekharness.app.ui.JellyScrollView>
 </LinearLayout>

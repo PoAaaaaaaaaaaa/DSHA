@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- 次级按钮：描边浅底 + 按压涟漪 + 禁用变灰。
-     旧版是静态 shape：按下去毫无反馈，禁用后外观照旧（用户一直点一直没反应）。 -->
+<!-- 次级按钮：玻璃底 + 按压涟漪 + 禁用变灰。
+     旧版是静态 shape：按下去毫无反馈，禁用后外观照旧（用户一直点一直没反应）。
+     玻璃质感只给"次级"这一档 —— 主按钮 bg_btn_primary 保持实心主色，
+     两类按钮必须一眼分得出主次，都做玻璃就没有层级了。
+     禁用态刻意保持纯灰不透明：玻璃是"可按"的暗示，不可用时不该给这个暗示。 -->
 <ripple xmlns:android="http://schemas.android.com/apk/res/android"
     android:color="@color/ripple">
 
@@ -20,13 +23,37 @@
                 </shape>
             </item>
             <item>
-                <shape android:shape="rectangle">
-                    <solid android:color="@color/card" />
-                    <corners android:radius="@dimen/radius_control" />
-                    <stroke
-                        android:width="@dimen/stroke"
-                        android:color="@color/line" />
-                </shape>
+                <layer-list>
+                    <item>
+                        <shape android:shape="rectangle">
+                            <gradient
+                                android:angle="270"
+                                android:endColor="@color/glass_bottom"
+                                android:startColor="@color/glass_top"
+                                android:type="linear" />
+                            <corners android:radius="@dimen/radius_control" />
+                        </shape>
+                    </item>
+                    <item>
+                        <shape android:shape="rectangle">
+                            <gradient
+                                android:angle="270"
+                                android:endColor="@android:color/transparent"
+                                android:startColor="@color/glass_sheen"
+                                android:type="linear" />
+                            <corners android:radius="@dimen/radius_control" />
+                        </shape>
+                    </item>
+                    <item>
+                        <shape android:shape="rectangle">
+                            <solid android:color="@android:color/transparent" />
+                            <corners android:radius="@dimen/radius_control" />
+                            <stroke
+                                android:width="@dimen/stroke"
+                                android:color="@color/glass_stroke" />
+                        </shape>
+                    </item>
+                </layer-list>
             </item>
         </selector>
     </item>

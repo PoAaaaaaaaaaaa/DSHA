@@ -1,6 +1,50 @@
 <?xml version="1.0" encoding="utf-8"?>
-<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
-    <solid android:color="@color/card" />
-    <corners android:radius="@dimen/radius_card" />
-    <stroke android:width="@dimen/stroke" android:color="@color/line" />
-</shape>
+<!--
+  卡片 = 一块玻璃。三层叠加，对应 ytbl 里 GlassParams 的分层模型：
+
+    1. 表面：顶亮底暗的竖向渐变 —— 一块有厚度的板，而不是一张纸
+    2. 高光：从顶边向下渐隐的淡白 —— 光从上方来
+    3. 描边：独立一层画在最后 —— 亮边压在表面上才是"边缘折射"，
+       混在表面 shape 里会被高光盖住，看着像脏了一条
+
+  层次顺序不能调：layer-list 后面的画在上面。
+  全 App 的卡片共用这一份；要改质感就改这里的 token 或层次，别在页面里另起一套。
+-->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- 1. 玻璃表面 -->
+    <item>
+        <shape android:shape="rectangle">
+            <gradient
+                android:angle="270"
+                android:endColor="@color/glass_bottom"
+                android:startColor="@color/glass_top"
+                android:type="linear" />
+            <corners android:radius="@dimen/radius_card" />
+        </shape>
+    </item>
+
+    <!-- 2. 顶部受光带 -->
+    <item>
+        <shape android:shape="rectangle">
+            <gradient
+                android:angle="270"
+                android:endColor="@android:color/transparent"
+                android:startColor="@color/glass_sheen"
+                android:type="linear" />
+            <corners android:radius="@dimen/radius_card" />
+        </shape>
+    </item>
+
+    <!-- 3. 折射亮边 -->
+    <item>
+        <shape android:shape="rectangle">
+            <solid android:color="@android:color/transparent" />
+            <corners android:radius="@dimen/radius_card" />
+            <stroke
+                android:width="@dimen/stroke"
+                android:color="@color/glass_stroke" />
+        </shape>
+    </item>
+
+</layer-list>

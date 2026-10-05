@@ -109,6 +109,13 @@ public class MainActivity extends AppCompatActivity {
         getSupportFragmentManager().addOnBackStackChangedListener(this::updateToolbar);
         getSupportFragmentManager().registerFragmentLifecycleCallbacks(new androidx.fragment.app.FragmentManager.FragmentLifecycleCallbacks() {
             @Override public void onFragmentResumed(androidx.fragment.app.FragmentManager manager, Fragment fragment) { updateToolbar(); }
+
+            @Override public void onFragmentViewCreated(androidx.fragment.app.FragmentManager manager, Fragment fragment,
+                                                        android.view.View view, Bundle state) {
+                // 页面新建时挂一次按压弹簧。此刻控件树还是初始规模，遍历成本可以忽略；
+                // 列表项是之后才填充的，得由各自的绑定处单独挂。
+                PressSpringAnimator.applyTo(view);
+            }
         }, false);
         findViewById(R.id.btn_about).setOnClickListener(v -> AboutDialog.show(this));
 
