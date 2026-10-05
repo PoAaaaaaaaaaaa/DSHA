@@ -20,13 +20,20 @@ final class SpringTicker {
     private final Runnable apply;
 
     private boolean posted;
-    private float lastFrameSeconds;
+
+    /**
+     * 开机至今的秒数。必须用 double 存：float 在开机 24h 后 ULP 已约 10ms、48h 约 20ms，
+     * 都超过一帧，dt 会被量化甚至算出 0，动画就开始抖。
+     */
+    private double lastFrameSeconds;
 
     private final Choreographer.FrameCallback stepper = new Choreographer.FrameCallback() {
         @Override public void doFrame(long frameTimeNanos) {
             posted = false;
-            float now = frameTimeNanos / 1_000_000_000f;
-            float dt = lastFrameSeconds == 0f ? DEFAULT_FRAME_SECONDS : now - lastFrameSeconds;
+            double now = frameTimeNanos / 1_000_000_000d;
+            float dt = lastFrameSeconds == 0d
+                    ? DEFAULT_FRAME_SECONDS
+                    : (float) (now - lastFrameSeconds);
             lastFrameSeconds = now;
 
             boolean moving = false;
@@ -38,9 +45,9 @@ final class SpringTicker {
             }
             apply.run();
             if (moving) {
-                post();
+                request();
             } else {
-                lastFrameSeconds = 0f;
+                lastFrameSeconds = 0d;
             }
         }
     };
@@ -67,6 +74,6 @@ final class SpringTicker {
             Choreographer.getInstance().removeFrameCallback(stepper);
             posted = false;
         }
-        lastFrameSeconds = 0f;
+        lastFrameSeconds = 0d;
     }
 }

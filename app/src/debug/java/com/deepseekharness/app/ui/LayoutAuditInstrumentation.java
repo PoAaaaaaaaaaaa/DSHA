@@ -294,7 +294,7 @@ public final class LayoutAuditInstrumentation extends Instrumentation {
                         if(scene.equals("update_busy"))require(screen.canvas.findViewById(R.id.update_cancel).getVisibility()==View.VISIBLE && !screen.canvas.findViewById(R.id.update_download).isEnabled(),"下载状态操作错误");
                         if(n==0 || n==1 || n==3 || n==5)save(screen.canvas,name);
                         if(style && n==5 && scene.equals("welcome_page1")) {
-                            android.widget.ScrollView scroll=(android.widget.ScrollView)screen.canvas;
+                            androidx.core.widget.NestedScrollView scroll=(androidx.core.widget.NestedScrollView)screen.canvas;
                             require(scroll.canScrollVertically(1),"短屏欢迎页不能滚动查看完整文案");
                             ui(()->{scroll.setSmoothScrollingEnabled(false);scroll.fullScroll(View.FOCUS_DOWN);});waitForIdleSync();
                             require(scroll.getScrollY()>0,"欢迎页没有实际滚动到底部");save(screen.canvas,name+"-bottom");

@@ -4,6 +4,7 @@ import android.app.*;
 import android.content.*;
 import android.os.Bundle;
 import android.widget.*;
+import androidx.core.widget.NestedScrollView;
 import androidx.fragment.app.Fragment;
 import com.deepseekharness.app.R;
 import com.deepseekharness.app.core.ConfigStore;
@@ -52,7 +53,7 @@ public final class InstallSettingsAudit extends Instrumentation {
             InstallFragment install=new InstallFragment();attach(install);
             Field repo=InstallFragment.class.getDeclaredField("repository");repo.setAccessible(true);repo.set(install,isolated);
             render(install);
-            ScrollView outer=page.findViewById(R.id.install_scroll);
+            NestedScrollView outer=page.findViewById(R.id.install_scroll);
             ui(()->check(outer.getScrollY()==0,"首次进入安装页没有置顶"));
             for(int i=0;i<100;i++)task.append("独立日志第 "+i+" 行，不运行安装任务");
             render(install);
@@ -61,7 +62,7 @@ public final class InstallSettingsAudit extends Instrumentation {
             task.append("用户正在阅读页面下方时追加日志");render(install);
             ui(()->check(outer.getScrollY()==position[0],"日志更新抢走用户阅读位置"));
             attach(new Fragment());InstallFragment next=new InstallFragment();attach(next);repo.set(next,isolated);render(next);
-            ui(()->check(((ScrollView)page.findViewById(R.id.install_scroll)).getScrollY()==0,"重新进入安装页沿用了日志焦点位置"));
+            ui(()->check(((NestedScrollView)page.findViewById(R.id.install_scroll)).getScrollY()==0,"重新进入安装页沿用了日志焦点位置"));
             ConfigFragment configPage=new ConfigFragment();attach(configPage);
             attach(new WorkspaceFragment());
             check(page.findViewById(R.id.workspace_backup)!=null,"缺少合并后的备份与恢复入口");

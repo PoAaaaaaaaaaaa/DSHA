@@ -7,6 +7,7 @@ import android.os.*;
 import android.view.*;
 import android.widget.*;
 import com.deepseekharness.app.R;
+import androidx.core.widget.NestedScrollView;
 import com.deepseekharness.app.core.ConfigStore;
 import java.util.*;
 
@@ -34,7 +35,7 @@ public final class LogPanelAudit extends Instrumentation {
         });
     }
     private void logs(String scene,int outerId,int innerId,int textId,String prefix)throws Exception{
-        ui(()->page.showScene(scene));TextView text=page.findViewById(textId);LogScrollView inner=page.findViewById(innerId);ScrollView outer=page.findViewById(outerId);
+        ui(()->page.showScene(scene));TextView text=page.findViewById(textId);LogScrollView inner=page.findViewById(innerId);NestedScrollView outer=page.findViewById(outerId);
         StringBuilder data=new StringBuilder();for(int i=0;i<220;i++)data.append(String.format(Locale.ROOT,"LINE %03d · sample diagnostic output\n",i));String original=data.toString();
         ui(()->{text.setText(original);outer.setSmoothScrollingEnabled(false);});
         ui(()->{Rect bounds=new Rect(0,0,inner.getWidth(),inner.getHeight());outer.offsetDescendantRectToMyCoords(inner,bounds);outer.scrollBy(0,bounds.top-dp(8));inner.scrollTo(0,dp(400));});
@@ -55,7 +56,7 @@ public final class LogPanelAudit extends Instrumentation {
         androidx.appcompat.app.AlertDialog[] dialog={null};
         try{
             ui(()->dialog[0]=AboutDialog.show(context));Thread.sleep(220);waitForIdleSync();
-            View root=dialog[0].getWindow().getDecorView(),close=root.findViewById(R.id.about_close);ScrollView content=root.findViewById(R.id.about_content_scroll);
+            View root=dialog[0].getWindow().getDecorView(),close=root.findViewById(R.id.about_close);NestedScrollView content=root.findViewById(R.id.about_content_scroll);
             check(close.getParent()!=root.findViewById(R.id.about_github).getParent(),"关闭按钮仍与外部入口混在同一排");
             int[] before=new int[2],after=new int[2];ui(()->{close.getLocationOnScreen(before);content.scrollTo(0,content.getChildAt(0).getHeight());close.getLocationOnScreen(after);});
             check(Arrays.equals(before,after),"滚动关于信息时关闭按钮被带走");check(close.getWidth()>root.getWidth()*0.6,"关闭按钮没有独立占据底部操作区");

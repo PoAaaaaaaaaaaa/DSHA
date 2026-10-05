@@ -124,11 +124,15 @@ public class JellyScrollView extends NestedScrollView {
                 break;
             case MotionEvent.ACTION_UP:
             case MotionEvent.ACTION_CANCEL:
-                stopTracking();
                 if (jellyActive) {
+                    // 顺序不能反：release 要读松手速度来带动回弹，而 stopTracking 会把
+                    // VelocityTracker 回收掉 —— 先 stop 再 release 的话 fling 永远是 0，
+                    // 「接住速度弹回去」就静默失效了（不报错，只是手感变木）。
                     release();
+                    stopTracking();
                     return true;
                 }
+                stopTracking();
                 break;
             default:
                 break;
@@ -236,8 +240,11 @@ public class JellyScrollView extends NestedScrollView {
         content.setScaleY(1f + value);
     }
 
-    private void trackVelocity(MotionEvent event) {
-        if (velocityTracker != null) velocityTracker.addMovement(event);
+    /** 记录这一笔用于算松手速度。按下时没能建立 tracker 就返回 false，调用方据此跳过。 */
+    private boolean trackVelocity(MotionEvent event) {
+        if (velocityTracker == null) return false;
+        velocityTracker.addMovement(event);
+        return true;
     }
 
     private void startTracking(MotionEvent event) {

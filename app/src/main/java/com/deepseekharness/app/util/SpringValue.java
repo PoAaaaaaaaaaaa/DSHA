@@ -143,9 +143,9 @@ public final class SpringValue {
 
         value = target + (float) y;
         velocity = (float) v;
-        if (!Float.isFinite(value) || !Float.isFinite(velocity) || !Float.isFinite(target)) {
+        if (!finite(value) || !finite(velocity) || !finite(target)) {
             // 参数被外部写成 NaN/Infinity 时不能让脏值一直传下去，否则整个界面画不出来。
-            target = Float.isFinite(target) ? target : 0f;
+            target = finite(target) ? target : 0f;
             value = target;
             velocity = 0f;
         }
@@ -167,5 +167,13 @@ public final class SpringValue {
 
     private static float clamp01(float v) {
         return v < 0f ? 0f : (v > 1f ? 1f : v);
+    }
+
+    /**
+     * 不用 {@code Float.isFinite}：它是 API 24 才加进去的静态方法，而兼容版 minSdk 是 23。
+     * 用 API 1 就存在的两个判断拼出同样的语义，代价只是一次取反。
+     */
+    private static boolean finite(float v) {
+        return !Float.isNaN(v) && !Float.isInfinite(v);
     }
 }
