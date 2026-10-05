@@ -143,3 +143,28 @@ ytbl 的 `DampedDragAnimation` 给 `scaleX`（阻尼 0.6）和 `scaleY`（阻尼
 | 果冻更跟手 / 更沉 | `JellyScrollView.DEFAULT_FALLOFF_DP`（当前 150dp，越小越跟手） |
 | 回弹更弹 / 更收敛 | `JellyScrollView.REBOUND_DAMPING`（当前 0.55，越接近 1 越不过冲） |
 | 按压收缩更明显 | `PressSpringAnimator.PRESSED_SCALE`（当前 0.96） |
+
+## 八、构建验证
+
+改动经 GitHub Actions 云端构建验证（`Android 构建` 工作流）：
+
+| 项 | 结果 |
+|---|---|
+| `:app:compileStandardDebugJavaWithJavac` / `Low` | 通过 |
+| 单测（standard / low 各跑一遍） | 各 818 项，0 失败、0 跳过 |
+| 其中 `SpringValueTest` | 11 项全通过（两个 flavor 都是 100%） |
+| `dsha-apk-standard-debug` | 打包成功（约 250 MB，含完整离线资产） |
+
+前两轮构建失败暴露的坑记在这里，避免重犯：
+
+- **`StateListAnimator.setState(int[])` 是 `@hide`**：SDK 的 android.jar 里没有这个方法，
+  子类写 `@Override` 必然编译失败（报 "does not override or implement a method from a
+  supertype"）。同类的 `setTarget` / `getTuples` / `getRunningAnimator` 也都是 `@hide`；
+  能用的公开入口只有 `addState(int[], Animator)`、`jumpToCurrentState()`、`clone()`、`start()`。
+- **`StateListAnimator` 在 `android.animation`**，不是 `android.view.animation`
+  （后者只有 `Animation` / `Interpolator` 那一套）。写错一处级联出 5 个报错。
+- **`Float.isFinite` 是 API 24**：兼容版 minSdk 23 用不了，改用 `isNaN` + `isInfinite` 组合。
+- 两处「重构时改了实现、漏改调用处」：`SpringTicker` 的帧回调调了不存在的 `post()`
+  （应为 `request()`）；`JellyScrollView.trackVelocity` 声明 `void` 却被当 `boolean` 用。
+- 一处不会编译失败、只会静默变木的：`release()` 排在 `stopTracking()` 之后，
+  `VelocityTracker` 已被回收，松手速度读不到，fling 恒为 0。
